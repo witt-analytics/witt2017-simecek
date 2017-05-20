@@ -4,9 +4,8 @@
 # Create Date: 17JAN2017            #
 # Update Date: 22APR2017            #
 
-
-#PUT IN SECTION TO GRAB MOBILE INDICATOR
-#Remove numbers to determine first name for gender prediction
+# Clear everything
+#rm(list = ls())
 
 # Store start time
 Start_Time <- Sys.time()
@@ -28,9 +27,6 @@ library(stringr)
 library(gender)
 library(genderdata)
 
-# Clear everything
-#rm(list = ls())
-
 ## Initialize data frames
 #rm(all_review_ids)
 #rm(full_reviews)
@@ -40,7 +36,8 @@ full_reviews <- data.frame
 full_reviews_final <- data.frame
 current_gender <- data.frame
 
-# Initialize lists
+# Initialize vectors
+Page_Number_final <- vector()
 Review_IDs_final <- vector()
 User_Name_final <- vector()
 User_Gender_final <- vector()
@@ -51,6 +48,7 @@ Review_IDs_final_df <- vector()
 Review_URL_final <- vector()
 Review_Title_final <- vector()
 Full_Review_final <- vector()
+Via_Mobile_final <- vector()
 Airline_Name_final <- vector()
 Review_Date_final <- vector()
 Overall_Review_final <- vector()
@@ -97,17 +95,17 @@ Airlines <- c(
    "Airline_Review-d10533124-Reviews-Cheap-Flights-Air-Iceland"
   ,"Airline_Review-d8728874-Reviews-Cheap-Flights-Aeromar"
   ,"Airline_Review-d8729135-Reviews-Cheap-Flights-Regent-Airways"
-  
-              # "Airline_Review-d8729020-Reviews-Cheap-Flights-American-Airlines"
-              #,"Airline_Review-d8729060-Reviews-Cheap-Flights-Delta-Air-Lines"
-              #,"Airline_Review-d8729156-Reviews-Cheap-Flights-Southwest-Airlines"
-              #,"Airline_Review-d8729177-Reviews-Cheap-Flights-United-Airlines"
-              #,"Airline_Review-d8729099-Reviews-Cheap-Flights-JetBlue-Airways"
-              #,"Airline_Review-d8729017-Reviews-Cheap-Flights-Alaska-Airlines"
-              #,"Airline_Review-d8729157-Reviews-Cheap-Flights-Spirit-Airlines"
-              #,"Airline_Review-d8729213-Reviews-Cheap-Flights-Frontier-Airlines"
-              #,"Airline_Review-d8729019-Reviews-Cheap-Flights-Allegiant-Air"
-              #,"Airline_Review-d8729086-Reviews-Cheap-Flights-Hawaiian-Airlines"
+
+              #  "Airline_Review-d8729020-Reviews-Cheap-Flights-American-Airlines"
+              # ,"Airline_Review-d8729060-Reviews-Cheap-Flights-Delta-Air-Lines"
+              # ,"Airline_Review-d8729156-Reviews-Cheap-Flights-Southwest-Airlines"
+              # ,"Airline_Review-d8729177-Reviews-Cheap-Flights-United-Airlines"
+              # ,"Airline_Review-d8729099-Reviews-Cheap-Flights-JetBlue-Airways"
+              # ,"Airline_Review-d8729017-Reviews-Cheap-Flights-Alaska-Airlines"
+              # ,"Airline_Review-d8729157-Reviews-Cheap-Flights-Spirit-Airlines"
+              # ,"Airline_Review-d8729213-Reviews-Cheap-Flights-Frontier-Airlines"
+              # ,"Airline_Review-d8729019-Reviews-Cheap-Flights-Allegiant-Air"
+              # ,"Airline_Review-d8729086-Reviews-Cheap-Flights-Hawaiian-Airlines"
               )
 
 # Loop through each airline
@@ -154,13 +152,15 @@ for (airline in Airlines) {
   # Iterate Through All Pages
   ######################################################################
   for(a in 1:Pages_Count_nb) {
-    
-    #List all review IDs
+    # List all review IDs
     Review_IDs <- html_attr(html_nodes(TA_SESSION,".quote a"),"id")
     #print(Review_IDs)
     Review_IDs_final <- c(Review_IDs_final,Review_IDs)
     
     for (rev_id in Review_IDs){
+      # Record page number
+      Page_Number_final <- c(Page_Number_final,(a-1)*10)
+      
       rev_id <- gsub("rn","",rev_id)
       #print(paste("Number: ",rev_id,sep = ''))
       
@@ -229,6 +229,17 @@ for (airline in Airlines) {
     #print(Review_Title_tx)
     Review_Title_final <- c(Review_Title_final,Review_Title_tx)
     
+    #Pull review mobile indicator
+    Via_Mobile_nd <- html_node(TA_HTML,".first .viaMobile")
+    Via_Mobile_tx <- html_text(Via_Mobile_nd)
+    if (is.na(Via_Mobile_tx)){
+      Via_Mobile_tx <- "N"
+    }else{
+      Via_Mobile_tx <- "Y"
+    }
+    #print(Via_Mobile_tx)
+    Via_Mobile_final <- c(Via_Mobile_final,Via_Mobile_tx)
+    
     # Pull review date
     Review_Date_nd <- html_node(TA_HTML,".first .ratingDate")
     Review_Date_tx <- html_attr(Review_Date_nd, "content")
@@ -236,9 +247,9 @@ for (airline in Airlines) {
     Review_Date_final <- c(Review_Date_final,Review_Date_tx)
     
     # Pull overall rating
-    Overall_Review_nd <- html_node(TA_HTML,".first .rating .rating_s_fill")
+    Overall_Review_nd <- html_node(TA_HTML,".first .rating_s_fill")
     Overall_Review_tx <- gsub(" of ","/",gsub(" bubbles","",html_attr(Overall_Review_nd,"alt")))
-    #print(Overall_Review_tx)
+    # print(Overall_Review_tx)
     Overall_Review_final <- c(Overall_Review_final,Overall_Review_tx)
     
     # Pull user name
@@ -259,11 +270,12 @@ for (airline in Airlines) {
     current_gender <- gender(frst_nm, method="ssa", years=c(1900,1999))
     
     # Store blank value if no gender found
-    if(nrow(current_gender) ==0 ){
+    if(nrow(current_gender) == 0){
       User_Gender_final <- c(User_Gender_final,"")
     }else{
       User_Gender_final <- c(User_Gender_final,current_gender[4])
     }
+    User_Gender_final <- unname(User_Gender_final)
     #print(User_Gender_final)
     
     # Pull user location
@@ -326,7 +338,7 @@ for (airline in Airlines) {
           Sub_Rating_nm <- html_text(Sub_Rating_nd)
           #print(paste("Rating Name: ",Sub_Rating_nm, sep = ''))
           # Pull sub-rating number
-          Sub_Rating_nd <- html_node(TA_HTML,paste(".first .first ",iterate_row," .rating_ss_fill", sep = ''))
+          Sub_Rating_nd <- html_node(TA_HTML,paste(".first .first ",iterate_row," .ui_bubble_rating", sep = ''))
           Sub_Rating_nb <- gsub(" of ","/",gsub(" bubbles","",html_attr(Sub_Rating_nd,"alt")))
           #print(paste("Rating number: ",Sub_Rating_nb, sep = ''))
           if (!is.na(Sub_Rating_nm)){
@@ -351,7 +363,7 @@ for (airline in Airlines) {
           Sub_Rating_nm <- html_text(Sub_Rating_nd)
           #print(paste("Rating Name: ",Sub_Rating_nm, sep = ''))
           # Pull sub-rating number
-          Sub_Rating_nd <- html_node(TA_HTML,paste(".first .first+ .recommend-column ",iterate_row," .rating_ss_fill", sep = ''))
+          Sub_Rating_nd <- html_node(TA_HTML,paste(".first .first+ .recommend-column ",iterate_row," .ui_bubble_rating", sep = ''))
           Sub_Rating_nb <- gsub(" of ","/",gsub(" bubbles","",html_attr(Sub_Rating_nd,"alt")))
           #print(paste("Rating number: ",Sub_Rating_nb, sep = ''))
           
@@ -383,7 +395,8 @@ for (airline in Airlines) {
 Review_IDs_final_df <- c(Review_IDs_final_df,Review_IDs_final)
 
 # Write airline reviews to data frame
-full_reviews <- cbind( Review_IDs_final_df
+full_reviews <- cbind( Page_Number_final
+                      ,Review_IDs_final_df
                       ,Review_URL_final
                       ,Airline_Name_final
                       ,Overall_Review_final
@@ -398,6 +411,7 @@ full_reviews <- cbind( Review_IDs_final_df
                       ,User_Location_final
                       ,User_Review_Ct_final
                       ,Helpful_Vote_Ct_final
+                      ,Via_Mobile_final
                       ,Review_Title_final
                       ,Full_Review_final
                       ,Seat_Comfort_final
@@ -413,7 +427,7 @@ full_reviews <- cbind( Review_IDs_final_df
 full_reviews <- subset(full_reviews,Airline_Name_final == Airline_Name_tx)
 
 # Write airline reviews to text file
-#write.table(full_reviews,paste("C:/Users/steve/Documents/Capstone_Local_Drive",Airline_Name_tx,".txt",sep = ''),sep = "|")
+write.table(full_reviews,paste("C:/Users/steve/Documents/Capstone_Local_Drive/Text_files/",Airline_Name_tx,".txt",sep = ''),sep = "|")
 
 # Clear the review ids and data frame in preparation for the next airline
 rm(Review_IDs_final)
@@ -422,34 +436,36 @@ Review_IDs_final <- vector()
 }
 
 # Write final data
-full_reviews_final <- cbind( Review_IDs_final_df
-                       ,Review_URL_final
-                       ,Airline_Name_final
-                       ,Overall_Review_final
-                       ,Review_Date_final
-                       ,Flight_Date_final
-                       ,Review_Destinations_final
-                       ,Review_Classes_final
-                       ,Review_Dmstc_Intl_final
-                       ,User_Name_final
-                       ,User_Gender_final
-                       ,User_Level_final
-                       ,User_Location_final
-                       ,User_Review_Ct_final
-                       ,Helpful_Vote_Ct_final
-                       ,Review_Title_final
-                       ,Full_Review_final
-                       ,Seat_Comfort_final
-                       ,Customer_Service_final
-                       ,Cleanliness_final
-                       ,Food_Beverage_final
-                       ,Legroom_final
-                       ,Entertainment_final
-                       ,Value_final
-                       ,Check_In_final)
+full_reviews_final <- cbind( Page_Number_final
+                            ,Review_IDs_final_df
+                            ,Review_URL_final
+                            ,Airline_Name_final
+                            ,Overall_Review_final
+                            ,Review_Date_final
+                            ,Flight_Date_final
+                            ,Review_Destinations_final
+                            ,Review_Classes_final
+                            ,Review_Dmstc_Intl_final
+                            ,User_Name_final
+                            ,User_Gender_final
+                            ,User_Level_final
+                            ,User_Location_final
+                            ,User_Review_Ct_final
+                            ,Helpful_Vote_Ct_final
+                            ,Via_Mobile_final
+                            ,Review_Title_final
+                            ,Full_Review_final
+                            ,Seat_Comfort_final
+                            ,Customer_Service_final
+                            ,Cleanliness_final
+                            ,Food_Beverage_final
+                            ,Legroom_final
+                            ,Entertainment_final
+                            ,Value_final
+                            ,Check_In_final)
 
 # Write data to text file
-write.table(full_reviews_final,paste("C:/Users/steve/Documents/Capstone_Local_Drive/All_Airlines_",toupper(format(Sys.Date(),"%d%b%Y")),".txt",sep = ''),sep = "||")
+write.table(full_reviews_final,paste("C:/Users/steve/Documents/Capstone_Local_Drive/Text_files/All_Airlines_",toupper(format(Sys.Date(),"%d%b%Y")),".txt",sep = ''),sep = "||")
 
 # Store end time
 End_Time <- Sys.time()
