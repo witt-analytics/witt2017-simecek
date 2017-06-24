@@ -10,6 +10,8 @@ install.packages('lubridate')
 
 library(lubridate)
 
+new_reviews_tibble <- read.csv("C:/Users/steve/Documents/Capstone_Local_Drive/reviews_dists.csv")[,names(reviews_dists)]
+
 
 # Strategy: explore what could be most interesting
 # literature and reviews of how the busses are operating

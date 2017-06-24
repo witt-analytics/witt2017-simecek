@@ -9,13 +9,28 @@
 
 # Install dplyr (must run this first time)
 #install.packages('dplyr')
+# install.packages('evtree')
+# install.packages('rpart')
+# install.packages('rpart.plot')
+# possibly use the j48 in rweka package
+# use package h2o
+
+install.packages('party')
 
 # Load dplyr
 library(dplyr)
+library(evtree)
+library(rpart)
+library(rpart.plot)
+library(party)
 
 # Use the following two lines for regression splines
 #install.packages("splines")
 #library(splines)
+
+table(reviews_tibble$user_lvl)
+
+# which airport has the highest avg reviews?
 
 
 # Read in excel file
@@ -109,6 +124,19 @@ names(new_mod)
 # new_mod$terms
 # new_mod$model
 
+data_sub <- reviews_tibble[sample(1:nrow(reviews_tibble), 6000),]
+
+data_sub$ovrl_score_nb <- as.factor(data_sub$ovrl_score_nb)
+data_sub$user_level <- as.character(data_sub$user_lvl)
+data_sub$user_gender <- as.factor(data_sub$user_gender)
+data_sub$flight_class <- as.factor(data_sub$flight_class)
+
+str(data_sub$user_level)
+
+new_tree <- evtree(ovrl_score_nb ~ user_level + user_gender + flight_class + rvw_hpfl_ct, data = data_sub)
+
+plot(new_tree)
+text(new_tree)
 
 # Modeling with a subset (only American Airlines)
 new_mod <- lm(data=reviews_tibble, ovrl_score_nb ~ avg_sentiment, subset = airline_nm == 'American Airlines')

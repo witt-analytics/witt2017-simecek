@@ -4,6 +4,9 @@
 # Create Date: 17JAN2017            #
 # Update Date: 22APR2017            #
 
+
+# To speed up, create the empty shells of the vecotrs first, with the correct lengths.
+
 # Clear everything
 #rm(list = ls())
 
