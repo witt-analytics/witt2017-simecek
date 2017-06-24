@@ -118,7 +118,9 @@ test_tibble <- classification_tibble[!(classification_tibble$review_id
 #######################################################
 train_tree <- subset(training_tibble,select=-c(review_id,ovrl_score_pos_in,ovrl_score_nb,user_rvw_ct,rvw_hpfl_ct))
 new_tree <- ctree(ovrl_score_group ~ .,data = train_tree)
-plot(new_tree)
+pdf(height = 8, width = 14)
+  plot(new_tree)
+dev.off()
 
 
 #######################################################
