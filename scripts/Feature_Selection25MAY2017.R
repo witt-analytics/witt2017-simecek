@@ -11,7 +11,9 @@
 library(Boruta)
 
 # Load in data set
-new_reviews_tibble <- read.csv("C:/Users/steve/Documents/Capstone_Local_Drive/reviews_dists.csv", stringsAsFactors = F)[,2:40]
+library(rprojroot) 
+root <- find_root(is_git_root)
+new_reviews_tibble <- read.csv(paste0(root,"/data","/reviews_dists.csv"), stringsAsFactors = F)[,2:40]
 
 
 # Append season

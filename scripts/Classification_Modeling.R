@@ -31,7 +31,7 @@ classification_tibble <- new_reviews_tibble
 classification_tibble <- classification_tibble[,c("review_id"
                                                  ,"ovrl_score_nb"
                                                  ,"review_length"
-                                                 ,"airline_nm"
+                                                 #,"airline_nm"
                                                  ,"user_rvw_ct"
                                                  ,"rvw_hpfl_ct"
                                                  ,"user_lvl"
@@ -73,6 +73,22 @@ classification_tibble$ovrl_score_nb <- as.ordered(classification_tibble$ovrl_sco
 # Remove outliers
 ul_user_rvw_ct <- mean(classification_tibble$user_rvw_ct) + (3*sd(classification_tibble$user_rvw_ct))
 print(paste("Upper limit of user_rvw_ct: ", ul_user_rvw_ct, sep = ''))
+
+# # Remove outliers 2
+# ucl_scale <- classification_tibble$log_user_rvw_ct
+# 
+# classification_tibble$log_user_rvw_ct_scale <- (ucl_scale-mean(ucl_scale))/sd(ucl_scale)
+# #normalize
+# classification_tibble <- subset(classification_tibble, abs(log_user_rvw_ct_scale) <= 3)
+# 
+# 
+# hpfl_scale <- classification_tibble$log_rvw_hpfl_ct
+# classification_tibble$log_rvw_hpfl_scale <- (hpfl_scale-mean(hpfl_scale))/sd(hpfl_scale)
+# 
+# classification_tibble <- subset(classification_tibble, abs(log_rvw_hpfl_scale) <= 3)
+
+
+
 
 ul_rvw_hpfl_ct <- mean(classification_tibble$rvw_hpfl_ct) + (3*sd(classification_tibble$rvw_hpfl_ct))
 print(paste("Upper limit of rvw_hpfl_ct: ", ul_rvw_hpfl_ct, sep = ''))
